@@ -180,7 +180,7 @@ public class MainActivity extends Activity {
 
 
     private void addToMapping( ArrayList< Integer > current ) {
-        for( int i = 0; i < 8; i++ ) {
+        for( int i = 0; i < 7; i++ ) {
             try  {
                 ArrayList< Integer > pre = mapNum.get( i );
                 pre.add( current.get( i ) );
