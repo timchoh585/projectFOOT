@@ -15,7 +15,7 @@ char startString = '#';
 char endString = '~';
 bool previous = false;
 bool stepping = false;
-int heel = 7;
+int heel = 6;
 int toe = 0;
 
 void setup() {
@@ -32,8 +32,8 @@ void sendForceData() {
     previous = true;
     //Serial.print(forceReading);
     int mappedValue = forceReading;//map(forceReading, 0, 767, 0000, 1023);
-//    sprintf(myBuffer,"%c%04d%04d%04d%04d%04d%04d%04d%c", startString, forceSensor[0], forceSensor[1], forceSensor[2], forceSensor[3], forceSensor[4], forceSensor[5], forceSensor[6], endString );
-    sprintf(myBuffer,"%c%04d%04d%04d%04d%04d%04d%04d%c", startString, mappedValue, mappedValue, mappedValue, mappedValue, mappedValue, mappedValue, mappedValue, endString );
+    sprintf(myBuffer,"%c%04d%04d%04d%04d%04d%04d%04d%c", startString, forceSensor[0], forceSensor[1], forceSensor[2], forceSensor[3], forceSensor[4], forceSensor[5], forceSensor[6], endString );
+//    sprintf(myBuffer,"%c%04d%04d%04d%04d%04d%04d%04d%c", startString, mappedValue, mappedValue, mappedValue, mappedValue, mappedValue, mappedValue, mappedValue, endString );
     BTserial.print(myBuffer);
     //Serial.println(myBuffer);
   } else {
@@ -43,6 +43,19 @@ void sendForceData() {
     }
     previous = false;
   }
+}
+
+void testSensor() {
+  int heelValue = forceReading1;
+  int toeValue = forceSensor2;
+
+  forceSensor[0] = heelValue;
+  forceSensor[1] = heelValue -10;
+  forceSensor[2] = heelValue -10;
+  forceSensor[3] = heelValue -10;
+  forceSensor[4] = heelValue -10;
+  forceSensor[5] = heelValue -10;
+  forceSensor[7] = toeValue;
 }
 
 bool greaterThanRestOfSensors( int sensor ) {
