@@ -38,6 +38,7 @@ import java.util.Random;
 
 import ca.hss.heatmaplib.HeatMap;
 import ca.hss.heatmaplib.HeatMapMarkerCallback;
+import foot.project.projectfoot.Util.CalculateFoot;
 
 public class MainActivity extends Activity {
 
@@ -53,10 +54,13 @@ public class MainActivity extends Activity {
 
     private ConnectedThread mConnectedThread;
 
-    HashMap<Integer, Integer> mapNum = new HashMap();
+    HashMap< Integer, ArrayList< Integer > > mapNum = new HashMap();
     double count = 0.0;
 
     private static final UUID BTMODULEUUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+    private static final float FACTOR = 1.5f;
+    private static final float[] X_LOC = { 0.4f, 0.4f, 0.2f, 0.1f, 0.1f, 0.2f, 0.3f };
+    private static final float[] Y_LOC = { 0.1f, 0.2f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f };
 
     private static String address;
 
@@ -95,7 +99,7 @@ public class MainActivity extends Activity {
 
         bluetoothIn = new Handler() {
             public void handleMessage(android.os.Message msg) {
-                if (msg.what == handlerState) {										//if message is what we want
+                if ( msg.what == handlerState ) {										//if message is what we want
                     String readMessage = (String) msg.obj;                              // msg.arg1 = bytes from connect thread
                     recDataString.append(readMessage);      								//keep appending to string until ~
                     int endOfLineIndex = recDataString.indexOf("~");                    // determine the end-of-line
@@ -105,25 +109,38 @@ public class MainActivity extends Activity {
                         int dataLength = dataInPrint.length();							//get length of data received
 //                        txtStringLength.setText("String Length = " + String.valueOf(dataLength));
 
-                        if (recDataString.charAt(0) == '#')								//if it starts with # we know it is what we are looking for
+                        if ( recDataString.charAt(0) == '#' )								//if it starts with # we know it is what we are looking for
                         {
-                            String forceSensor1 = recDataString.substring(1,5);
-                            String forceSensor2 = recDataString.substring(5, 9);             //get sensor value from string between indices 1-5
-                            String forceSensor3 = recDataString.substring(9, 13);            //same again...
-                            String forceSensor4 = recDataString.substring(13, 17);
-                            String forceSensor5 = recDataString.substring(17, 21);
-                            String forceSensor6 = recDataString.substring(21, 25);
-                            String forceSensor7 = recDataString.substring(25, 29);
+                            ArrayList< Integer > current = new ArrayList<>();
 
-                            drawNewMap(
-                                    Integer.parseInt( forceSensor1 ),
-                                    Integer.parseInt( forceSensor2 ),
-                                    Integer.parseInt( forceSensor3 ),
-                                    Integer.parseInt( forceSensor4 ),
-                                    Integer.parseInt( forceSensor5 ),
-                                    Integer.parseInt( forceSensor6 ),
-                                    Integer.parseInt( forceSensor7 )
-                            );
+                            current.add( Integer.parseInt( recDataString.substring( 1,5 ) ) );
+                            current.add( Integer.parseInt( recDataString.substring( 5, 9 ) ) );             //get sensor value from string between indices 1-5
+                            current.add( Integer.parseInt( recDataString.substring( 9, 13 ) ) );            //same again...
+                            current.add( Integer.parseInt( recDataString.substring( 13, 17 ) ) );
+                            current.add( Integer.parseInt( recDataString.substring( 17, 21 ) ) );
+                            current.add( Integer.parseInt( recDataString.substring( 21, 25 ) ) );
+                            current.add( Integer.parseInt( recDataString.substring( 25, 29 ) ) );
+
+                            try{
+                                String exit = recDataString.substring( 29, 30 );
+                                if( exit.equals( "X" ) ) {
+                                    addToMapping( current );
+                                    drawHeatMap();
+                                    map.forceRefresh();
+                                }
+                            } catch( Exception e ) {
+                                addToMapping( current );
+                            }
+
+//                            drawNewMap(
+//                                    Integer.parseInt( forceSensor1 ),
+//                                    Integer.parseInt( forceSensor2 ),
+//                                    Integer.parseInt( forceSensor3 ),
+//                                    Integer.parseInt( forceSensor4 ),
+//                                    Integer.parseInt( forceSensor5 ),
+//                                    Integer.parseInt( forceSensor6 ),
+//                                    Integer.parseInt( forceSensor7 )
+//                            );
 
                             map.forceRefresh();
 //
@@ -162,27 +179,54 @@ public class MainActivity extends Activity {
 
 
 
+    private void addToMapping( ArrayList< Integer > current ) {
+        for( int i = 0; i < 8; i++ ) {
+            try  {
+                ArrayList< Integer > pre = mapNum.get( i );
+                pre.add( current.get( i ) );
+                mapNum.put( i, pre );
+            } catch ( Exception e ) {
+                ArrayList< Integer > cur = new ArrayList<>();
+                cur.add( current.get( i ) );
+                mapNum.put( i, cur );
+            }
+        }
+    }
+
+
+
     @AnyThread
-    private void drawNewMap(int s1, int s2, int s3, int s4, int s5, int s6, int s7) {
+    private void drawHeatMap() {
+        CalculateFoot calc = new CalculateFoot( mapNum );
+        double[] map = calc.getHeatMap();
+        drawNewMap( map );
+    }
+
+
+
+    @AnyThread
+    private void drawNewMap( double[] heatMap ) {
         map.clearData();
         count++;
 
-        float factor = 1.5f;
+        for( int i = 0; i < 8; i++ ) {
+            map.addData( new HeatMap.DataPoint( X_LOC[i] * FACTOR, Y_LOC[i] * FACTOR, heatMap[i] ) );
+        }
 
-        HeatMap.DataPoint point1 = new HeatMap.DataPoint( 0.400f*factor, 0.100f*factor, s1 );
-        HeatMap.DataPoint point2 = new HeatMap.DataPoint( 0.400f*factor, 0.200f*factor, s2 );
-        HeatMap.DataPoint point3 = new HeatMap.DataPoint( 0.200f*factor, 0.200f*factor, s3 );
-        HeatMap.DataPoint point4 = new HeatMap.DataPoint( 0.100f*factor, 0.300f*factor, s4 );
-        HeatMap.DataPoint point5 = new HeatMap.DataPoint( 0.100f*factor, 0.400f*factor, s5 );
-        HeatMap.DataPoint point6 = new HeatMap.DataPoint( 0.200f*factor, 0.500f*factor, s6 );
-        HeatMap.DataPoint point7 = new HeatMap.DataPoint( 0.300f*factor, 0.600f*factor, s7 );
-        map.addData(point1);
-        map.addData(point2);
-        map.addData(point3);
-        map.addData(point4);
-        map.addData(point5);
-        map.addData(point6);
-        map.addData(point7);
+//        HeatMap.DataPoint point1 = new HeatMap.DataPoint( 0.400f*factor, 0.100f*factor, s1 );
+//        HeatMap.DataPoint point2 = new HeatMap.DataPoint( 0.400f*factor, 0.200f*factor, s2 );
+//        HeatMap.DataPoint point3 = new HeatMap.DataPoint( 0.200f*factor, 0.200f*factor, s3 );
+//        HeatMap.DataPoint point4 = new HeatMap.DataPoint( 0.100f*factor, 0.300f*factor, s4 );
+//        HeatMap.DataPoint point5 = new HeatMap.DataPoint( 0.100f*factor, 0.400f*factor, s5 );
+//        HeatMap.DataPoint point6 = new HeatMap.DataPoint( 0.200f*factor, 0.500f*factor, s6 );
+//        HeatMap.DataPoint point7 = new HeatMap.DataPoint( 0.300f*factor, 0.600f*factor, s7 );
+//        map.addData(point1);
+//        map.addData(point2);
+//        map.addData(point3);
+//        map.addData(point4);
+//        map.addData(point5);
+//        map.addData(point6);
+//        map.addData(point7);
 
         Log.d( "Data Sending: ", "Updating" );
     }
