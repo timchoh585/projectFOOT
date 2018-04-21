@@ -81,7 +81,7 @@ public class MainActivity extends Activity {
 
         map = findViewById(R.id.example_map);
         map.setMinimum(0.0);
-        map.setMaximum(5000.0);
+        map.setMaximum(1023.0);
         map.setLeftPadding(100);
         map.setRightPadding(100);
         map.setTopPadding(100);

@@ -44,6 +44,6 @@ public class CalculateFoot {
 
 
     private double getTimeOverMS() {
-        return footData.get( 1 ).size() / 10.0;
+        return footData.get( 1 ).size() / 3.33;
     }
 }
