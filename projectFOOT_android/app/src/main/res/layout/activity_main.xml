@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
+
+
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
@@ -10,6 +12,12 @@
     android:orientation="vertical"
     tools:context="foot.project.projectfoot.MainActivity">
 
+    <!--<ImageView-->
+    <!--android:layout_width="match_parent"-->
+    <!--android:layout_height="match_parent"-->
+    <!--android:src="@drawable/img"-->
+    <!--android:alpha="0.7"/>-->
+
     <ca.hss.heatmaplib.HeatMap
         android:id="@+id/example_map"
         android:layout_width="match_parent"
@@ -20,7 +28,8 @@
         app:blur="0.001"
         app:maxDrawingHeight="200dp"
         app:maxDrawingWidth="200dp"
-        app:transparentBackground="false"/>
+        app:transparentBackground="false"
+        android:background="@drawable/img"/>
 
     <!--<TextView-->
         <!--android:id="@+id/testView1"-->

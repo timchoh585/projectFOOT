@@ -109,11 +109,11 @@ public class MainActivity extends Activity {
                         {
                             String forceSensor1 = recDataString.substring(1,5);
                             String forceSensor2 = recDataString.substring(5, 9);             //get sensor value from string between indices 1-5
-                            String forceSensor3 = recDataString.substring(9, 13);            //same again...
-                            String forceSensor4 = recDataString.substring(13, 17);
-                            String forceSensor5 = recDataString.substring(17, 21);
-                            String forceSensor6 = recDataString.substring(21, 25);
-                            String forceSensor7 = recDataString.substring(25, 29);
+                            String forceSensor3 = "0000";//recDataString.substring(9, 13);            //same again...
+                            String forceSensor4 = "0000";//recDataString.substring(13, 17);
+                            String forceSensor5 = "0000";//recDataString.substring(17, 21);
+                            String forceSensor6 = "0000";//recDataString.substring(21, 25);
+                            String forceSensor7 = "0000";//recDataString.substring(25, 29);
 
                             drawNewMap(
                                     Integer.parseInt( forceSensor1 ),
@@ -309,6 +309,8 @@ public class MainActivity extends Activity {
                 try {
                     bytes = mmInStream.read(buffer);
                     String readMessage = new String(buffer, 0, bytes);
+                    Log.d( "forceSensor: ", String.valueOf(bytes));
+                    Log.d( "forceSensor: ", readMessage );
                     bluetoothIn.obtainMessage(handlerState, bytes, -1, readMessage).sendToTarget();
                 } catch (IOException e) {
                     break;
