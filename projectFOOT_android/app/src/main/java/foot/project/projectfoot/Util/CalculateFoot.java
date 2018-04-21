@@ -17,7 +17,7 @@ public class CalculateFoot {
 
 
     public double[] getHeatMap() {
-        double[] heatMap = new double[8];
+        double[] heatMap = new double[7];
         double time = getTimeOverMS();
 
         for( Map.Entry< Integer, ArrayList< Integer > > sensor : footData.entrySet() ) {

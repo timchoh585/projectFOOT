@@ -81,7 +81,7 @@ public class MainActivity extends Activity {
 
         map = findViewById(R.id.example_map);
         map.setMinimum(0.0);
-        map.setMaximum(1023.0);
+        map.setMaximum(5000.0);
         map.setLeftPadding(100);
         map.setRightPadding(100);
         map.setTopPadding(100);
@@ -101,10 +101,10 @@ public class MainActivity extends Activity {
             public void handleMessage(android.os.Message msg) {
                 if ( msg.what == handlerState ) {										//if message is what we want
                     String readMessage = (String) msg.obj;                              // msg.arg1 = bytes from connect thread
-                    recDataString.append(readMessage);      								//keep appending to string until ~
+                    recDataString.append(readMessage);      						    //keep appending to string until ~
                     int endOfLineIndex = recDataString.indexOf("~");                    // determine the end-of-line
                     if (endOfLineIndex > 0) {                                           // make sure there data before ~
-                        String dataInPrint = recDataString.substring(0, endOfLineIndex);    // extract string
+                        String dataInPrint = recDataString.substring(0, endOfLineIndex);// extract string
 //                        txtString.setText("Data Received = " + dataInPrint);
                         int dataLength = dataInPrint.length();							//get length of data received
 //                        txtStringLength.setText("String Length = " + String.valueOf(dataLength));
@@ -127,6 +127,8 @@ public class MainActivity extends Activity {
                                     addToMapping( current );
                                     drawHeatMap();
                                     map.forceRefresh();
+                                } else {
+                                    addToMapping( current );
                                 }
                             } catch( Exception e ) {
                                 addToMapping( current );
@@ -141,8 +143,6 @@ public class MainActivity extends Activity {
 //                                    Integer.parseInt( forceSensor6 ),
 //                                    Integer.parseInt( forceSensor7 )
 //                            );
-
-                            map.forceRefresh();
 //
 //                            sensorView0.setText(" Force Sensor: " + forceSensor);	//update the textviews with sensor values
 //                            sensorView1.setText(" Sensor 1 Voltage = " + sensor1 + "V");
@@ -181,7 +181,7 @@ public class MainActivity extends Activity {
 
     private void addToMapping( ArrayList< Integer > current ) {
         for( int i = 0; i < 7; i++ ) {
-            try  {
+            try {
                 ArrayList< Integer > pre = mapNum.get( i );
                 pre.add( current.get( i ) );
                 mapNum.put( i, pre );
@@ -207,9 +207,10 @@ public class MainActivity extends Activity {
     @AnyThread
     private void drawNewMap( double[] heatMap ) {
         map.clearData();
+        mapNum.clear();
         count++;
 
-        for( int i = 0; i < 8; i++ ) {
+        for( int i = 0; i < 7; i++ ) {
             map.addData( new HeatMap.DataPoint( X_LOC[i] * FACTOR, Y_LOC[i] * FACTOR, heatMap[i] ) );
         }
 
