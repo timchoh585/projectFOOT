@@ -5,7 +5,9 @@ import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
@@ -20,6 +22,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.StringTokenizer;
 import java.util.UUID;
 
 import ca.hss.heatmaplib.HeatMap;
@@ -118,7 +121,7 @@ public class MainActivity extends Activity {
                                 addToMapping( current );
                             }
                         }
-                        recDataString.delete(0, recDataString.length()); 					//clear all string data
+                        recDataString.delete( 0, recDataString.length() ); 					//clear all string data
                     }
                 }
             }
@@ -164,6 +167,37 @@ public class MainActivity extends Activity {
 
         Log.d( "Data Sending: ", "Updating" );
     }
+
+
+
+    private void updateHistory( ArrayList< Double > current, float time ) {
+        Context context = this;
+        SharedPreferences sharedPref = context.getSharedPreferences( getString( R.string.preference_file_key ), Context.MODE_PRIVATE );
+
+        float savedTime = sharedPref.getFloat( "time", 0.0f );
+        String savedString = sharedPref.getString("points", "");
+
+        savedTime += time;
+
+        StringTokenizer st = new StringTokenizer(savedString, ",");
+        double[] savedList = new double[7];
+        for (int i = 0; i < 7; i++) {
+            savedList[i] = Double.parseDouble( st.nextToken() ) + current.get( i );
+        }
+
+        SharedPreferences.Editor editor = sharedPref.edit();
+
+        StringBuilder str = new StringBuilder();
+        for ( double stored : current ) {
+            str.append( stored ).append(",");
+        }
+
+        editor.putString( "points", str.toString() );
+        editor.putFloat( "time", savedTime );
+
+        editor.apply();
+    }
+    
 
 
     private BluetoothSocket createBluetoothSocket(BluetoothDevice device) throws IOException {
@@ -285,21 +319,21 @@ public class MainActivity extends Activity {
 
             while (true) {
                 try {
-                    bytes = mmInStream.read(buffer);
-                    String readMessage = new String(buffer, 0, bytes);
-                    bluetoothIn.obtainMessage(handlerState, bytes, -1, readMessage).sendToTarget();
-                } catch (IOException e) {
+                    bytes = mmInStream.read( buffer );
+                    String readMessage = new String( buffer, 0, bytes );
+                    bluetoothIn.obtainMessage( handlerState, bytes, -1, readMessage ).sendToTarget();
+                } catch ( IOException e ) {
                     break;
                 }
             }
         }
 
-        public void write(String input) {
+        public void write( String input ) {
             byte[] msgBuffer = input.getBytes();
             try {
-                mmOutStream.write(msgBuffer);
-            } catch (IOException e) {
-                Toast.makeText(getBaseContext(), "Connection Failure", Toast.LENGTH_LONG).show();
+                mmOutStream.write( msgBuffer );
+            } catch ( IOException e ) {
+                Toast.makeText( getBaseContext(), "Connection Failure", Toast.LENGTH_LONG ).show();
                 finish();
 
             }
