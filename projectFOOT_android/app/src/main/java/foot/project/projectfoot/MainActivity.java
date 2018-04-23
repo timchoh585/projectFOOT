@@ -1,49 +1,35 @@
 package foot.project.projectfoot;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.UUID;
-
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
-import android.view.View;
-import android.view.View.OnClickListener;
+import android.support.annotation.AnyThread;
+import android.support.v4.util.ArrayMap;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import android.graphics.Color;
-import android.os.AsyncTask;
-import android.os.SystemClock;
-import android.support.annotation.AnyThread;
-import android.support.v4.util.ArrayMap;
-import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.util.Log;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
-
-import java.lang.reflect.Array;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
+import java.util.UUID;
 
 import ca.hss.heatmaplib.HeatMap;
 import ca.hss.heatmaplib.HeatMapMarkerCallback;
 import foot.project.projectfoot.Util.CalculateFoot;
 
 public class MainActivity extends Activity {
-
-    Button btnOn, btnOff;
-    TextView txtArduino, txtString, txtStringLength, sensorView0, sensorView1, sensorView2, sensorView3;
+    
     Handler bluetoothIn;
     private HeatMap map;
 
@@ -70,15 +56,6 @@ public class MainActivity extends Activity {
 
         setContentView(R.layout.activity_main);
 
-//        btnOn = (Button) findViewById(R.id.buttonOn);
-//        btnOff = (Button) findViewById(R.id.buttonOff);
-//        txtString = (TextView) findViewById(R.id.txtString);
-//        txtStringLength = (TextView) findViewById(R.id.testView1);
-//        sensorView0 = (TextView) findViewById(R.id.sensorView0);
-//        sensorView1 = (TextView) findViewById(R.id.sensorView1);
-//        sensorView2 = (TextView) findViewById(R.id.sensorView2);
-//        sensorView3 = (TextView) findViewById(R.id.sensorView3);
-
         map = findViewById(R.id.example_map);
         map.setMinimum(0.0);
         map.setMaximum(1023.0);
@@ -96,7 +73,16 @@ public class MainActivity extends Activity {
             colors.put(stop, color);
         }
         map.setColorStops(colors);
+        setupBluetoth();
 
+        btAdapter = BluetoothAdapter.getDefaultAdapter();       // get Bluetooth adapter
+        checkBTState();
+    }
+
+
+
+    @SuppressLint("HandlerLeak")
+    private void setupBluetoth() {
         bluetoothIn = new Handler() {
             public void handleMessage(android.os.Message msg) {
                 if ( msg.what == handlerState ) {										//if message is what we want
@@ -133,48 +119,12 @@ public class MainActivity extends Activity {
                             } catch( Exception e ) {
                                 addToMapping( current );
                             }
-
-//                            drawNewMap(
-//                                    Integer.parseInt( forceSensor1 ),
-//                                    Integer.parseInt( forceSensor2 ),
-//                                    Integer.parseInt( forceSensor3 ),
-//                                    Integer.parseInt( forceSensor4 ),
-//                                    Integer.parseInt( forceSensor5 ),
-//                                    Integer.parseInt( forceSensor6 ),
-//                                    Integer.parseInt( forceSensor7 )
-//                            );
-//
-//                            sensorView0.setText(" Force Sensor: " + forceSensor);	//update the textviews with sensor values
-//                            sensorView1.setText(" Sensor 1 Voltage = " + sensor1 + "V");
-//                            sensorView2.setText(" Sensor 2 Voltage = " + sensor2 + "V");
-//                            sensorView3.setText(" Sensor 3 Voltage = " + sensor3 + "V");
                         }
                         recDataString.delete(0, recDataString.length()); 					//clear all string data
-                        // strIncom =" ";
-                        dataInPrint = " ";
                     }
                 }
             }
         };
-
-        btAdapter = BluetoothAdapter.getDefaultAdapter();       // get Bluetooth adapter
-        checkBTState();
-
-
-        // Set up onClick listeners for buttons to send 1 or 0 to turn on/off LED
-//        btnOff.setOnClickListener(new OnClickListener() {
-//            public void onClick(View v) {
-//                mConnectedThread.write("L");    // Send "0" via Bluetooth
-//                Toast.makeText(getBaseContext(), "Turn off LED", Toast.LENGTH_SHORT).show();
-//            }
-//        });
-
-//        btnOn.setOnClickListener(new OnClickListener() {
-//            public void onClick(View v) {
-//                mConnectedThread.write("H");    // Send "1" via Bluetooth
-//                Toast.makeText(getBaseContext(), "Turn on LED", Toast.LENGTH_SHORT).show();
-//            }
-//        });
     }
 
 
@@ -213,21 +163,6 @@ public class MainActivity extends Activity {
         for( int i = 0; i < 7; i++ ) {
             map.addData( new HeatMap.DataPoint( X_LOC[i] * FACTOR, Y_LOC[i] * FACTOR, heatMap[i] ) );
         }
-
-//        HeatMap.DataPoint point1 = new HeatMap.DataPoint( 0.400f*factor, 0.100f*factor, s1 );
-//        HeatMap.DataPoint point2 = new HeatMap.DataPoint( 0.400f*factor, 0.200f*factor, s2 );
-//        HeatMap.DataPoint point3 = new HeatMap.DataPoint( 0.200f*factor, 0.200f*factor, s3 );
-//        HeatMap.DataPoint point4 = new HeatMap.DataPoint( 0.100f*factor, 0.300f*factor, s4 );
-//        HeatMap.DataPoint point5 = new HeatMap.DataPoint( 0.100f*factor, 0.400f*factor, s5 );
-//        HeatMap.DataPoint point6 = new HeatMap.DataPoint( 0.200f*factor, 0.500f*factor, s6 );
-//        HeatMap.DataPoint point7 = new HeatMap.DataPoint( 0.300f*factor, 0.600f*factor, s7 );
-//        map.addData(point1);
-//        map.addData(point2);
-//        map.addData(point3);
-//        map.addData(point4);
-//        map.addData(point5);
-//        map.addData(point6);
-//        map.addData(point7);
 
         Log.d( "Data Sending: ", "Updating" );
     }
