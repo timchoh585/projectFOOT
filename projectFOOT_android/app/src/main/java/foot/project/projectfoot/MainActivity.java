@@ -150,19 +150,20 @@ public class MainActivity extends Activity {
     private void drawHeatMap() {
         CalculateFoot calc = new CalculateFoot( mapNum );
         double[] map = calc.getHeatMap();
-        drawNewMap( map );
+        double time = calc.getTimeOverMS();
+        drawNewMap( map, time, calc );
     }
 
 
 
     @AnyThread
-    private void drawNewMap( double[] heatMap ) {
+    private void drawNewMap( double[] heatMap, double time, CalculateFoot calc ) {
         map.clearData();
         mapNum.clear();
-        count++;
+        double[] newMap = updateHistory( heatMap, time, calc );
 
         for( int i = 0; i < 7; i++ ) {
-            map.addData( new HeatMap.DataPoint( X_LOC[i] * FACTOR, Y_LOC[i] * FACTOR, heatMap[i] ) );
+            map.addData( new HeatMap.DataPoint( X_LOC[i] * FACTOR, Y_LOC[i] * FACTOR, newMap[i] ) );
         }
 
         Log.d( "Data Sending: ", "Updating" );
@@ -170,32 +171,33 @@ public class MainActivity extends Activity {
 
 
 
-    private void updateHistory( ArrayList< Double > current, float time ) {
+    private double[] updateHistory( double[] current, double time, CalculateFoot calc ) {
         Context context = this;
         SharedPreferences sharedPref = context.getSharedPreferences( getString( R.string.preference_file_key ), Context.MODE_PRIVATE );
 
         float savedTime = sharedPref.getFloat( "time", 0.0f );
         String savedString = sharedPref.getString("points", "");
 
-        savedTime += time;
-
-        StringTokenizer st = new StringTokenizer(savedString, ",");
+        String[] history = savedString.split( ",", 7 );
         double[] savedList = new double[7];
         for (int i = 0; i < 7; i++) {
-            savedList[i] = Double.parseDouble( st.nextToken() ) + current.get( i );
+            savedList[i] = Double.parseDouble( history[i] ) + current[i];
         }
 
         SharedPreferences.Editor editor = sharedPref.edit();
 
         StringBuilder str = new StringBuilder();
-        for ( double stored : current ) {
+        for ( double stored : savedList ) {
             str.append( stored ).append(",");
         }
+        savedTime += time;
 
         editor.putString( "points", str.toString() );
         editor.putFloat( "time", savedTime );
 
         editor.apply();
+
+        return calc.calculateHeatMap( savedList, savedTime );
     }
 
 
