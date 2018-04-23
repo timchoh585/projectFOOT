@@ -197,7 +197,7 @@ public class MainActivity extends Activity {
 
         editor.apply();
     }
-    
+
 
 
     private BluetoothSocket createBluetoothSocket(BluetoothDevice device) throws IOException {
