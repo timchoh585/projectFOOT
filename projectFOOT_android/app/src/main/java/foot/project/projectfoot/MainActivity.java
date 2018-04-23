@@ -12,8 +12,6 @@ import android.os.Handler;
 import android.support.annotation.AnyThread;
 import android.support.v4.util.ArrayMap;
 import android.util.Log;
-import android.widget.Button;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.IOException;
@@ -29,7 +27,7 @@ import ca.hss.heatmaplib.HeatMapMarkerCallback;
 import foot.project.projectfoot.Util.CalculateFoot;
 
 public class MainActivity extends Activity {
-    
+
     Handler bluetoothIn;
     private HeatMap map;
 
