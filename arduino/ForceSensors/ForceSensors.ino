@@ -67,14 +67,14 @@ bool greaterThanRestOfSensors( int sensor ) {
 
 void checkForStep() {
   if( greaterThanRestOfSensors( heel ) && !stopRec) {
-    if(forceSensor[ heel ] > 110){
+    if(forceSensor[ heel ] > 15){
       stepping = true;
-      startRec = true;      
+      startRec = true;
     }
   }
   if( greaterThanRestOfSensors( toe )  && startRec) {
     stopRec = true;
-    if ((forceSensor[ toe ] < 110) && stepping){
+    if ((forceSensor[ toe ] < 15) && stepping){
       char endBuffer[31];
       sprintf(endBuffer,"%c%04d%04d%04d%04d%04d%04d%04d%c%c", startString, forceSensor[0], forceSensor[1], forceSensor[2], forceSensor[3], forceSensor[4], forceSensor[5], forceSensor[6], 'X', endString);
       BTserial.print(endBuffer);
