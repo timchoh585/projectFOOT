@@ -103,11 +103,14 @@ public class MainActivity extends Activity {
 
         SharedPreferences.Editor editor = sharedPref.edit();
 
-
         editor.putString( "points", "" );
         editor.putFloat( "time", 0.0f );
 
         editor.apply();
+
+        map.clearData();
+        map.forceRefresh();
+        time.setText( "Total Time recorded: 0 seconds" );
     }
 
 
@@ -200,7 +203,7 @@ public class MainActivity extends Activity {
 
 
     private void setTextOfTime( double time ) {
-        this.time.setText( "Total Time recorded: " + Double.toString( time ) );
+        this.time.setText( "Total Time recorded: " + Double.toString( time ) + " seconds" );
     }
 
 
