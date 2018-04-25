@@ -14,6 +14,9 @@ import android.os.Handler;
 import android.support.annotation.AnyThread;
 import android.support.v4.util.ArrayMap;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.IOException;
@@ -33,6 +36,9 @@ public class MainActivity extends Activity {
 
     Handler bluetoothIn;
     private HeatMap map;
+    private TextView augment;
+    private TextView time;
+    private Button clearData;
 
     final int handlerState = 0;
     private BluetoothAdapter btAdapter = null;
@@ -57,9 +63,11 @@ public class MainActivity extends Activity {
 
         setContentView(R.layout.activity_main);
 
-        map = findViewById(R.id.example_map);
+        time = findViewById( R.id.step_time );
+        clearData = findViewById( R.id.clear_data );
+        map = findViewById( R.id.left_foot );
         map.setMinimum(0.0);
-        map.setMaximum(1023.0);
+        map.setMaximum(767.0);
         map.setLeftPadding(100);
         map.setRightPadding(100);
         map.setTopPadding(100);
@@ -74,16 +82,37 @@ public class MainActivity extends Activity {
             colors.put(stop, color);
         }
         map.setColorStops(colors);
-        setupBluetoth();
+
+        clearData.setOnClickListener( new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                clearLocalData();
+            }
+        });
+
+        setupBluetooth();
 
         btAdapter = BluetoothAdapter.getDefaultAdapter();       // get Bluetooth adapter
         checkBTState();
     }
 
+    private void clearLocalData() {
+        Context context = this;
+        SharedPreferences sharedPref = context.getSharedPreferences( getString( R.string.preference_file_key ), Context.MODE_PRIVATE );
+
+        SharedPreferences.Editor editor = sharedPref.edit();
+
+
+        editor.putString( "points", "" );
+        editor.putFloat( "time", 0.0f );
+
+        editor.apply();
+    }
 
 
     @SuppressLint("HandlerLeak")
-    private void setupBluetoth() {
+    private void setupBluetooth() {
         bluetoothIn = new Handler() {
             public void handleMessage(android.os.Message msg) {
                 if ( msg.what == handlerState ) {										//if message is what we want
@@ -170,6 +199,11 @@ public class MainActivity extends Activity {
     }
 
 
+    private void setTextOfTime( double time ) {
+        this.time.setText( "Total Time recorded: " + Double.toString( time ) );
+    }
+
+
 
     private double[] updateHistory( double[] current, double time, CalculateFoot calc ) {
         Context context = this;
@@ -180,15 +214,20 @@ public class MainActivity extends Activity {
 
         String[] history = savedString.split( ",", 7 );
         double[] savedList = new double[7];
-        for (int i = 0; i < 7; i++) {
-            savedList[i] = Double.parseDouble( history[i] ) + current[i];
+        try {
+            for (int i = 0; i < 7; i++) {
+                savedList[i] = Double.parseDouble(history[i]) + current[i];
+            }
+        } catch ( Exception e ) {
+            savedList = current;
         }
 
         SharedPreferences.Editor editor = sharedPref.edit();
 
         StringBuilder str = new StringBuilder();
-        for ( double stored : savedList ) {
-            str.append( stored ).append(",");
+        for( int i = 0; i < 7; i++ ) {
+            if( 6 == i ) { str.append( savedList[i] ); }
+            else { str.append( savedList[i] ).append( "," ); }
         }
         savedTime += time;
 
@@ -196,6 +235,8 @@ public class MainActivity extends Activity {
         editor.putFloat( "time", savedTime );
 
         editor.apply();
+        setTextOfTime( savedTime );
+
 
         return calc.calculateHeatMap( savedList, savedTime );
     }
@@ -249,6 +290,8 @@ public class MainActivity extends Activity {
         mConnectedThread.write("x");
     }
 
+
+
     @Override
     public void onPause()
     {
@@ -260,6 +303,8 @@ public class MainActivity extends Activity {
             //TODO: Don't leave Bluetooth sockets open when leaving activity
         }
     }
+
+
 
     private void checkBTState() {
 

@@ -11,15 +11,27 @@
     tools:context="foot.project.projectfoot.MainActivity">
 
     <ca.hss.heatmaplib.HeatMap
-        android:id="@+id/example_map"
+        android:id="@+id/left_foot"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
+        android:layout_weight="9.5"
         app:minOpacity="0"
         app:maxOpacity="255"
         app:blur="0.001"
         app:maxDrawingHeight="200dp"
         app:maxDrawingWidth="200dp"
         app:transparentBackground="false"/>
+
+    <TextView
+        android:id="@+id/step_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.5"/>
+
+    <Button
+        android:id="@+id/clear_data"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Clear Data"/>
 
 </LinearLayout>

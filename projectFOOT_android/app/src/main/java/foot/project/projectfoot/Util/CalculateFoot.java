@@ -21,7 +21,7 @@ public class CalculateFoot {
         double time = getTimeOverMS();
 
         for( Map.Entry< Integer, ArrayList< Integer > > sensor : footData.entrySet() ) {
-            heatMap[ sensor.getKey() ] = Double.parseDouble( String.valueOf( sensor.getValue() ) );
+            heatMap[ sensor.getKey() ] = calculateDistribution( sensor.getValue() );
         }
 
         return heatMap;
@@ -39,16 +39,13 @@ public class CalculateFoot {
 
 
 
-    private double calculateDistribution( ArrayList< Integer > data, double time ) {
-        double calculated;
+    private double calculateDistribution( ArrayList< Integer > data ) {
         int sum = 0;
 
         for( int d: data )
             sum += d;
 
-        calculated = sum / time;
-
-        return calculated;
+        return sum;
     }
 
 
