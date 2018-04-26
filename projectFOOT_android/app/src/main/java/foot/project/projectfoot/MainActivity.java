@@ -25,7 +25,6 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.StringTokenizer;
 import java.util.UUID;
 
 import ca.hss.heatmaplib.HeatMap;
@@ -61,7 +60,7 @@ public class MainActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.main);
 
         time = findViewById( R.id.step_time );
         clearData = findViewById( R.id.clear_data );
@@ -84,7 +83,6 @@ public class MainActivity extends Activity {
         map.setColorStops(colors);
 
         clearData.setOnClickListener( new View.OnClickListener() {
-
             @Override
             public void onClick(View v) {
                 clearLocalData();
@@ -92,9 +90,29 @@ public class MainActivity extends Activity {
         });
 
         setupBluetooth();
+        loadOldData();
 
         btAdapter = BluetoothAdapter.getDefaultAdapter();       // get Bluetooth adapter
         checkBTState();
+    }
+
+    private void loadOldData() {
+        Context context = this;
+        SharedPreferences sharedPref = context.getSharedPreferences( getString( R.string.preference_file_key ), Context.MODE_PRIVATE );
+
+        if( sharedPref.contains( "points" ) && sharedPref.contains( "time" ) ) {
+            float savedTime = sharedPref.getFloat( "time", 0.0f );
+            String savedString = sharedPref.getString("points", "");
+
+            String[] history = savedString.split( ",", 7 );
+            try {
+                for (int i = 0; i < 7; i++) {
+                    double overTime = Double.parseDouble( history[i] ) / savedTime;
+                    map.addData( new HeatMap.DataPoint( X_LOC[i] * FACTOR, Y_LOC[i] * FACTOR,  overTime ) );
+                }
+            } catch ( Exception e ) {
+            }
+        }
     }
 
     private void clearLocalData() {
@@ -102,10 +120,7 @@ public class MainActivity extends Activity {
         SharedPreferences sharedPref = context.getSharedPreferences( getString( R.string.preference_file_key ), Context.MODE_PRIVATE );
 
         SharedPreferences.Editor editor = sharedPref.edit();
-
-        editor.putString( "points", "" );
-        editor.putFloat( "time", 0.0f );
-
+        editor.clear();
         editor.apply();
 
         map.clearData();

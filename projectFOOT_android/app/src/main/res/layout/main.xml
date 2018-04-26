@@ -1,46 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    tools:ignore="TextFields,HardcodedText" >
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/activity_main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical"
+    tools:context="foot.project.projectfoot.MainActivity" >
+
+    <ca.hss.heatmaplib.HeatMap
+        android:id="@+id/left_foot"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:minOpacity="0"
+        app:maxOpacity="255"
+        app:blur="0.001"
+        app:maxDrawingHeight="200dp"
+        app:maxDrawingWidth="200dp"
+        app:transparentBackground="true" />
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:src="@drawable/left_foot"
+        android:alpha="0.7"/>
 
     <TextView
-        android:id="@+id/label"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:text="Type here:" />
-
-    <EditText
-        android:id="@+id/entry"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/label"
-        android:background="@android:drawable/editbox_background" />
-
-    <Button
-        android:id="@+id/open"
+        android:id="@+id/step_time"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
-        android:layout_below="@id/entry"
-        android:layout_marginLeft="10dip"
-        android:text="Open" />
+        android:gravity="bottom|start"/>
 
     <Button
-        android:id="@+id/send"
+        android:id="@+id/clear_data"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignTop="@id/open"
-        android:layout_toLeftOf="@id/open"
-        android:text="Send" />
-
-    <Button
-        android:id="@+id/close"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignTop="@id/send"
-        android:layout_toLeftOf="@id/send"
-        android:text="Close" />
+        android:text="@string/clear_data"
+        android:gravity="bottom|end"/>
 
 </RelativeLayout>
