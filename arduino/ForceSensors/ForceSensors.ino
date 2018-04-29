@@ -1,8 +1,8 @@
 #include <SoftwareSerial.h>
 SoftwareSerial BTserial(3, 2); 
 // RX | TX on Arduino (so HC-05 RX goes to pin 2, TX goes to pin 3, GND goes between 1 and 2k resistors)
-int forceSensor0 = 2;
-int forceSensor1 = 0;
+int forceSensor0 = 0;
+int forceSensor1 = 2;
 int forceSensor2 = 3;
 int forceSensor3 = 4;
 int forceSensor4 = 5;
@@ -19,7 +19,7 @@ bool startRec = false;
 bool stopRec = false;
 int toe = 0;
 int heel = 6;
-int threshold = 30;
+int threshold = 130;
 
 void setup() {
   
@@ -32,11 +32,11 @@ void testSensor() {
   int heelValue = forceReading6;
 
   forceSensor[0] = forceReading0;
-  forceSensor[1] = forceReading1;
-  forceSensor[2] = forceReading2;
-  forceSensor[3] = forceReading3;
-  forceSensor[4] = forceReading4;
-  forceSensor[5] = forceReading5;
+  forceSensor[1] = 0;//forceReading1;
+  forceSensor[2] = 0;//forceReading2;
+  forceSensor[3] = 0;//forceReading3;
+  forceSensor[4] = 0;//forceReading4;
+  forceSensor[5] = 0;//forceReading5;
   forceSensor[6] = forceReading6;
 }
 
@@ -74,8 +74,8 @@ void checkForStep() {
     }
   }
   if( greaterThanRestOfSensors( toe )  && startRec) {
-    stopRec = true;
-    if ((forceSensor[ toe ] < threshold) && stepping){
+      stopRec = true;
+    if ((forceSensor[ toe ] < threshold) && (forceSensor[ heel ] < threshold) && stepping){
       char endBuffer[31];
       sprintf(endBuffer,"%c%04d%04d%04d%04d%04d%04d%04d%c%c", startString, forceSensor[0], forceSensor[1], forceSensor[2], forceSensor[3], forceSensor[4], forceSensor[5], forceSensor[6], 'X', endString);
       BTserial.print(endBuffer);
