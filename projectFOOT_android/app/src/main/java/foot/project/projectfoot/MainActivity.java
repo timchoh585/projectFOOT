@@ -63,6 +63,7 @@ public class MainActivity extends Activity {
         setContentView(R.layout.main);
 
         time = findViewById( R.id.step_time );
+        augment = findViewById( R.id.augment_description );
         clearData = findViewById( R.id.clear_data );
         map = findViewById( R.id.left_foot );
         map.setMinimum(0.0);
@@ -125,7 +126,8 @@ public class MainActivity extends Activity {
 
         map.clearData();
         map.forceRefresh();
-        time.setText( "Total Time recorded: 0 seconds" );
+        time.setText( R.string.empty_data );
+        augment.setText( R.string.empty_augment );
     }
 
 
@@ -347,9 +349,9 @@ public class MainActivity extends Activity {
         }
         float[] hsvmin = new float[3];
         float[] hsvmax = new float[3];
-        float frac = (float)((value - min) / (max - min));
-        Color.RGBToHSV(Color.red(min_color), Color.green(min_color), Color.blue(min_color), hsvmin);
-        Color.RGBToHSV(Color.red(max_color), Color.green(max_color), Color.blue(max_color), hsvmax);
+        float frac = (float)( ( value - min ) / ( max - min ) );
+        Color.RGBToHSV(Color.red( min_color ), Color.green( min_color ), Color.blue( min_color ), hsvmin);
+        Color.RGBToHSV(Color.red( max_color ), Color.green( max_color ), Color.blue( max_color ), hsvmax);
         float[] retval = new float[3];
         for (int i = 0; i < 3; i++) {
             retval[i] = interpolate(hsvmin[i], hsvmax[i], frac);
@@ -358,7 +360,7 @@ public class MainActivity extends Activity {
     }
 
     private static float interpolate(float a, float b, float proportion) {
-        return (a + ((b - a) * proportion));
+        return ( a + ( ( b - a ) * proportion ) );
     }
 
     private class ConnectedThread extends Thread {

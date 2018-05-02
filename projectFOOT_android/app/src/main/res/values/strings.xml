@@ -5,4 +5,6 @@
     <string name="none_paired">No devices have been paired</string>
     <string name="preference_file_key">PROJECTFOOT</string>
     <string name="clear_data">Clear Data</string>
+    <string name="empty_data">Total Time recorded: 0 seconds</string>
+    <string name="empty_augment">There is no Augment necessary</string>
 </resources>

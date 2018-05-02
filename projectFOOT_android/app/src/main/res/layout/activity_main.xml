@@ -14,7 +14,7 @@
         android:id="@+id/left_foot"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="9.5"
+        android:layout_weight="9"
         app:minOpacity="0"
         app:maxOpacity="255"
         app:blur="0.001"
@@ -26,12 +26,19 @@
         android:id="@+id/step_time"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_weight="0.5"/>
+        android:layout_weight="0.4"/>
+
+    <TextView
+        android:id="@+id/augment_description"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.4"/>
 
     <Button
         android:id="@+id/clear_data"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/clear_data"/>
+        android:text="@string/clear_data"
+        android:layout_weight="0.2"/>
 
 </LinearLayout>
