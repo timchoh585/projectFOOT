@@ -85,6 +85,14 @@ void checkForStep() {
       startRec= false;
     }
   }
+  // Starting step with toe
+  if( greaterThanRestOfSensors( toe )  && !startRec ){
+    char errorBuffer[3];
+    sprintf(errorBuffer,"%03c",startString,'^',endString);
+    BTserial.print(errorBuffer);
+    Serial.println(errorBuffer);
+    
+  }
 }
 
 void loop ()
