@@ -51,8 +51,8 @@ public class MainActivity extends Activity {
 
     private static final UUID BTMODULEUUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
     private static final float FACTOR = 1.5f;
-    private static final float[] X_LOC = { 0.4f, 0.4f, 0.2f, 0.1f, 0.1f, 0.2f, 0.3f };
-    private static final float[] Y_LOC = { 0.1f, 0.2f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f };
+    private static final float[] X_LOC = { 0.48f, 0.48f, 0.3f, 0.2f, 0.2f, 0.25f, 0.3f };
+    private static final float[] Y_LOC = { 0.05f, 0.2f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f };
 
     private static String address;
 
@@ -60,7 +60,7 @@ public class MainActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.main);
+        setContentView( R.layout.activity_main );
 
         time = findViewById( R.id.step_time );
         augment = findViewById( R.id.augment_description );
@@ -150,8 +150,8 @@ public class MainActivity extends Activity {
                             ArrayList< Integer > current = new ArrayList<>();
 
                             current.add( Integer.parseInt( recDataString.substring( 1,5 ) ) );
-                            current.add( Integer.parseInt( recDataString.substring( 5, 9 ) ) );             //get sensor value from string between indices 1-5
-                            current.add( Integer.parseInt( recDataString.substring( 9, 13 ) ) );            //same again...
+                            current.add( Integer.parseInt( recDataString.substring( 5, 9 ) ) );
+                            current.add( Integer.parseInt( recDataString.substring( 9, 13 ) ) );
                             current.add( Integer.parseInt( recDataString.substring( 13, 17 ) ) );
                             current.add( Integer.parseInt( recDataString.substring( 17, 21 ) ) );
                             current.add( Integer.parseInt( recDataString.substring( 21, 25 ) ) );
@@ -269,6 +269,8 @@ public class MainActivity extends Activity {
         //creates secure outgoing connecetion with BT device using UUID
     }
 
+
+
     @Override
     public void onResume() {
         super.onResume();
@@ -340,6 +342,7 @@ public class MainActivity extends Activity {
     }
 
 
+
     private static int doGradient(double value, double min, double max, int min_color, int max_color) {
         if (value >= max) {
             return max_color;
@@ -359,9 +362,13 @@ public class MainActivity extends Activity {
         return Color.HSVToColor(retval);
     }
 
+
+
     private static float interpolate(float a, float b, float proportion) {
         return ( a + ( ( b - a ) * proportion ) );
     }
+
+
 
     private class ConnectedThread extends Thread {
         private final InputStream mmInStream;
@@ -380,6 +387,8 @@ public class MainActivity extends Activity {
             mmOutStream = tmpOut;
         }
 
+
+
         public void run() {
             byte[] buffer = new byte[256];
             int bytes;
@@ -394,6 +403,8 @@ public class MainActivity extends Activity {
                 }
             }
         }
+
+
 
         public void write( String input ) {
             byte[] msgBuffer = input.getBytes();

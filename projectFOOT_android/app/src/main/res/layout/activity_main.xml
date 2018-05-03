@@ -17,10 +17,11 @@
         android:layout_weight="9"
         app:minOpacity="0"
         app:maxOpacity="255"
-        app:blur="0.001"
+        app:blur="0.01"
         app:maxDrawingHeight="200dp"
         app:maxDrawingWidth="200dp"
-        app:transparentBackground="false"/>
+        app:transparentBackground="true"
+        android:background="@drawable/left_foot" />
 
     <TextView
         android:id="@+id/step_time"
