@@ -22,6 +22,8 @@ import android.widget.Toast;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -53,6 +55,12 @@ public class MainActivity extends Activity {
     private static final float FACTOR = 1.5f;
     private static final float[] X_LOC = { 0.48f, 0.48f, 0.3f, 0.2f, 0.2f, 0.25f, 0.3f };
     private static final float[] Y_LOC = { 0.05f, 0.2f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f };
+
+    private static final int RECTUS = 0;
+    private static final int CAVUS = 2;
+    private static final int PLANUS = 1;
+
+
 
     private static String address;
 
@@ -110,6 +118,7 @@ public class MainActivity extends Activity {
                 for (int i = 0; i < 7; i++) {
                     double overTime = Double.parseDouble( history[i] ) / savedTime;
                     map.addData( new HeatMap.DataPoint( X_LOC[i] * FACTOR, Y_LOC[i] * FACTOR,  overTime ) );
+                    setTextOfTime( ( double ) savedTime );
                 }
             } catch ( Exception e ) {
             }
@@ -195,11 +204,36 @@ public class MainActivity extends Activity {
 
 
 
+    public void updateText( String message ){
+        augment.setText( message );
+    }
+
+
+
     @AnyThread
     private void drawHeatMap() {
         CalculateFoot calc = new CalculateFoot( mapNum );
         double[] map = calc.getHeatMap();
         double time = calc.getTimeOverMS();
+
+            switch (checkForMAI(map)) {
+                case -1:
+                    updateText("You need to see a doctor!");
+                    break;
+                case RECTUS:
+                    updateText("Keep up the GOOD WORK");
+                    break;
+                case PLANUS:
+                    updateText("We're noticing a flatfooted walk. Make sure you lift off more as you walk," +
+                            " and put more pressure on the ball and heel of your foot!");
+                    break;
+                case CAVUS:
+                    updateText("We're noticing a high-arched walk. You're  putting too much pressure" +
+                            "on the ball and heel of your foot. Reduce the pressure there! ");
+                    break;
+            }
+
+
         drawNewMap( map, time, calc );
     }
 
@@ -220,7 +254,37 @@ public class MainActivity extends Activity {
 
 
     private void setTextOfTime( double time ) {
-        this.time.setText( "Total Time recorded: " + Double.toString( time ) + " seconds" );
+        this.time.setText( "Total Time recorded: " + Double.toString( round( time, 2 ) ) + " seconds" );
+    }
+
+
+    private static double round( double value, int places ) {
+        if ( places < 0 ) throw new IllegalArgumentException();
+
+        BigDecimal bd = new BigDecimal( Double.toString( value ) );
+        bd = bd.setScale( places, RoundingMode.HALF_UP );
+        return bd.doubleValue();
+    }
+
+
+
+    private int checkForMAI( double[] current ) {
+        double sectionA = current[0] + current[1] + current[2];
+        double sectionB = current[3] + current[4] + current[5];
+        double sectionC = current[6];
+
+        double mai = sectionB / ( sectionA + sectionB + sectionC );
+
+        if( 0 < mai && 0.3 > mai ) {
+            return CAVUS;
+        }
+        else if( 0.31 < mai && 0.463 > mai ) {
+            return RECTUS;
+        }
+        else if( 0.564 < mai && 0.913 > mai ) {
+            return PLANUS;
+        }
+        else { return -1; }
     }
 
 
