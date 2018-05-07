@@ -103,6 +103,17 @@ public class MainActivity extends Activity {
 
         btAdapter = BluetoothAdapter.getDefaultAdapter();       // get Bluetooth adapter
         checkBTState();
+
+        Button graphBtn = (Button) findViewById(R.id.open_graph_button);
+        graphBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent i = new Intent(view.getContext(), GraphActivity.class);
+                //add extra parsable object for hashmap values
+                i.putExtra("hashmap", mapNum);
+                startActivity(i);
+            }
+        });
     }
 
     private void loadOldData() {

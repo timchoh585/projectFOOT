@@ -35,11 +35,23 @@
         android:layout_height="wrap_content"
         android:layout_weight="0.2"/>
 
-    <Button
-        android:id="@+id/clear_data"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/clear_data"
-        android:layout_weight="0.2"/>
+        android:orientation="horizontal">
+        <Button
+            android:id="@+id/clear_data"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/clear_data"
+            android:layout_weight="0.2"/>
+        <Button
+            android:id="@+id/open_graph_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text = "@string/Open_Graph"
+            android:layout_weight="0.2"/>
+
+    </LinearLayout>
 
 </LinearLayout>
