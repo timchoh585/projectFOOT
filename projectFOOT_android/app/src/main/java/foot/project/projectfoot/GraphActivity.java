@@ -2,10 +2,12 @@ package foot.project.projectfoot;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 
 import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.GridLabelRenderer;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
@@ -70,9 +72,17 @@ public class GraphActivity extends Activity {
                 new DataPoint(6, avgForceValues[5]),
                 new DataPoint(7, avgForceValues[6])
         });
+
         graph.addSeries(seriesLow);
         graph.addSeries(seriesHigh);
         graph.addSeries(seriesAvg);
+        seriesLow.setColor(Color.GREEN);
+        seriesHigh.setColor(Color.RED);
+        seriesAvg.setColor(Color.YELLOW);
+
+        GridLabelRenderer graphView = new GridLabelRenderer(graph);
+        graphView.setHorizontalAxisTitle("Sensors");
+        graphView.setVerticalAxisTitle("Force");
     }
 }
 
