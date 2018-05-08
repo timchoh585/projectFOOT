@@ -25,6 +25,8 @@ import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -49,7 +51,10 @@ public class MainActivity extends Activity {
     private ConnectedThread mConnectedThread;
 
     HashMap< Integer, ArrayList< Integer > > mapNum = new HashMap();
+    HashMap< Integer, ArrayList< Integer > > stepHistory = new HashMap();
     double count = 0.0;
+
+    double pressureMax = 0;
 
     private static final UUID BTMODULEUUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
     private static final float FACTOR = 1.5f;
@@ -75,7 +80,7 @@ public class MainActivity extends Activity {
         clearData = findViewById( R.id.clear_data );
         map = findViewById( R.id.left_foot );
         map.setMinimum(0.0);
-        map.setMaximum(767.0);
+        map.setMaximum(2047.0);
         map.setLeftPadding(100);
         map.setRightPadding(100);
         map.setTopPadding(100);
@@ -103,6 +108,17 @@ public class MainActivity extends Activity {
 
         btAdapter = BluetoothAdapter.getDefaultAdapter();       // get Bluetooth adapter
         checkBTState();
+
+        Button graphBtn = (Button) findViewById(R.id.open_graph_button);
+        graphBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent i = new Intent(view.getContext(), GraphActivity.class);
+                //add extra parsable object for hashmap values
+                i.putExtra("hashmap", stepHistory);
+                startActivity(i);
+            }
+        });
     }
 
     private void loadOldData() {
@@ -114,16 +130,33 @@ public class MainActivity extends Activity {
             String savedString = sharedPref.getString("points", "");
 
             String[] history = savedString.split( ",", 7 );
+            double[] historyD = new double[7];
             try {
                 for (int i = 0; i < 7; i++) {
                     double overTime = Double.parseDouble( history[i] ) / savedTime;
+                    historyD[i] = overTime;
                     map.addData( new HeatMap.DataPoint( X_LOC[i] * FACTOR, Y_LOC[i] * FACTOR,  overTime ) );
                     setTextOfTime( ( double ) savedTime );
                 }
+                double max = maxOfDouble( historyD );
+                map.setMaximum( max );
             } catch ( Exception e ) {
             }
         }
     }
+
+
+    private double maxOfDouble( double[] current ) {
+        double max = -1;
+        for( int i = 0; i < current.length; i++ ) {
+            if( current[i] > max ) {
+                max = current[i];
+            }
+        }
+
+        return max;
+    }
+
 
     private void clearLocalData() {
         Context context = this;
@@ -194,10 +227,12 @@ public class MainActivity extends Activity {
                 ArrayList< Integer > pre = mapNum.get( i );
                 pre.add( current.get( i ) );
                 mapNum.put( i, pre );
+                stepHistory.put(i, pre);
             } catch ( Exception e ) {
                 ArrayList< Integer > cur = new ArrayList<>();
                 cur.add( current.get( i ) );
                 mapNum.put( i, cur );
+                stepHistory.put( i, cur);
             }
         }
     }
@@ -244,6 +279,9 @@ public class MainActivity extends Activity {
         map.clearData();
         mapNum.clear();
         double[] newMap = updateHistory( heatMap, time, calc );
+
+        double max = maxOfDouble( newMap );
+        map.setMaximum( max );
 
         for( int i = 0; i < 7; i++ ) {
             map.addData( new HeatMap.DataPoint( X_LOC[i] * FACTOR, Y_LOC[i] * FACTOR, newMap[i] ) );
@@ -320,7 +358,6 @@ public class MainActivity extends Activity {
 
         editor.apply();
         setTextOfTime( savedTime );
-
 
         return calc.calculateHeatMap( savedList, savedTime );
     }
