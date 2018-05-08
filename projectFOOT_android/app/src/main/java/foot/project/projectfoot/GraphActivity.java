@@ -22,6 +22,17 @@ public class GraphActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView( R.layout.activity_graph );
 
+        createGraphWithPoints();
+    }
+
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+    }
+
+
+    public void createGraphWithPoints() {
         Intent i = getIntent();
         HashMap<Integer, ArrayList<Integer>> mapNum = (HashMap<Integer, ArrayList<Integer>>) i.getSerializableExtra("hashmap");
         GraphView graph = (GraphView) findViewById(R.id.graph);
