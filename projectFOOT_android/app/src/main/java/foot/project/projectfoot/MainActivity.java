@@ -14,15 +14,21 @@ import android.os.Handler;
 import android.support.annotation.AnyThread;
 import android.support.v4.util.ArrayMap;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.StringTokenizer;
 import java.util.UUID;
 
 import ca.hss.heatmaplib.HeatMap;
@@ -33,6 +39,9 @@ public class MainActivity extends Activity {
 
     Handler bluetoothIn;
     private HeatMap map;
+    private TextView augment;
+    private TextView time;
+    private Button clearData;
 
     final int handlerState = 0;
     private BluetoothAdapter btAdapter = null;
@@ -42,12 +51,21 @@ public class MainActivity extends Activity {
     private ConnectedThread mConnectedThread;
 
     HashMap< Integer, ArrayList< Integer > > mapNum = new HashMap();
+    HashMap< Integer, ArrayList< Integer > > stepHistory = new HashMap();
     double count = 0.0;
+
+    double pressureMax = 0;
 
     private static final UUID BTMODULEUUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
     private static final float FACTOR = 1.5f;
-    private static final float[] X_LOC = { 0.4f, 0.4f, 0.2f, 0.1f, 0.1f, 0.2f, 0.3f };
-    private static final float[] Y_LOC = { 0.1f, 0.2f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f };
+    private static final float[] X_LOC = { 0.48f, 0.48f, 0.3f, 0.2f, 0.2f, 0.25f, 0.3f };
+    private static final float[] Y_LOC = { 0.05f, 0.2f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f };
+
+    private static final int RECTUS = 0;
+    private static final int CAVUS = 2;
+    private static final int PLANUS = 1;
+
+
 
     private static String address;
 
@@ -55,11 +73,14 @@ public class MainActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.activity_main);
+        setContentView( R.layout.activity_main );
 
-        map = findViewById(R.id.example_map);
+        time = findViewById( R.id.step_time );
+        augment = findViewById( R.id.augment_description );
+        clearData = findViewById( R.id.clear_data );
+        map = findViewById( R.id.left_foot );
         map.setMinimum(0.0);
-        map.setMaximum(1023.0);
+        map.setMaximum(2047.0);
         map.setLeftPadding(100);
         map.setRightPadding(100);
         map.setTopPadding(100);
@@ -74,16 +95,86 @@ public class MainActivity extends Activity {
             colors.put(stop, color);
         }
         map.setColorStops(colors);
-        setupBluetoth();
+
+        clearData.setOnClickListener( new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                clearLocalData();
+            }
+        });
+
+        setupBluetooth();
+        loadOldData();
 
         btAdapter = BluetoothAdapter.getDefaultAdapter();       // get Bluetooth adapter
         checkBTState();
+
+        Button graphBtn = (Button) findViewById(R.id.open_graph_button);
+        graphBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent i = new Intent(view.getContext(), GraphActivity.class);
+                //add extra parsable object for hashmap values
+                i.putExtra("hashmap", stepHistory);
+                startActivity(i);
+            }
+        });
+    }
+
+    private void loadOldData() {
+        Context context = this;
+        SharedPreferences sharedPref = context.getSharedPreferences( getString( R.string.preference_file_key ), Context.MODE_PRIVATE );
+
+        if( sharedPref.contains( "points" ) && sharedPref.contains( "time" ) ) {
+            float savedTime = sharedPref.getFloat( "time", 0.0f );
+            String savedString = sharedPref.getString("points", "");
+
+            String[] history = savedString.split( ",", 7 );
+            double[] historyD = new double[7];
+            try {
+                for (int i = 0; i < 7; i++) {
+                    double overTime = Double.parseDouble( history[i] ) / savedTime;
+                    historyD[i] = overTime;
+                    map.addData( new HeatMap.DataPoint( X_LOC[i] * FACTOR, Y_LOC[i] * FACTOR,  overTime ) );
+                    setTextOfTime( ( double ) savedTime );
+                }
+                double max = maxOfDouble( historyD );
+                map.setMaximum( max );
+            } catch ( Exception e ) {
+            }
+        }
     }
 
 
+    private double maxOfDouble( double[] current ) {
+        double max = -1;
+        for( int i = 0; i < current.length; i++ ) {
+            if( current[i] > max ) {
+                max = current[i];
+            }
+        }
+
+        return max;
+    }
+
+
+    private void clearLocalData() {
+        Context context = this;
+        SharedPreferences sharedPref = context.getSharedPreferences( getString( R.string.preference_file_key ), Context.MODE_PRIVATE );
+
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.clear();
+        editor.apply();
+
+        map.clearData();
+        map.forceRefresh();
+        time.setText( R.string.empty_data );
+        augment.setText( R.string.empty_augment );
+    }
+
 
     @SuppressLint("HandlerLeak")
-    private void setupBluetoth() {
+    private void setupBluetooth() {
         bluetoothIn = new Handler() {
             public void handleMessage(android.os.Message msg) {
                 if ( msg.what == handlerState ) {										//if message is what we want
@@ -101,8 +192,8 @@ public class MainActivity extends Activity {
                             ArrayList< Integer > current = new ArrayList<>();
 
                             current.add( Integer.parseInt( recDataString.substring( 1,5 ) ) );
-                            current.add( Integer.parseInt( recDataString.substring( 5, 9 ) ) );             //get sensor value from string between indices 1-5
-                            current.add( Integer.parseInt( recDataString.substring( 9, 13 ) ) );            //same again...
+                            current.add( Integer.parseInt( recDataString.substring( 5, 9 ) ) );
+                            current.add( Integer.parseInt( recDataString.substring( 9, 13 ) ) );
                             current.add( Integer.parseInt( recDataString.substring( 13, 17 ) ) );
                             current.add( Integer.parseInt( recDataString.substring( 17, 21 ) ) );
                             current.add( Integer.parseInt( recDataString.substring( 21, 25 ) ) );
@@ -136,12 +227,20 @@ public class MainActivity extends Activity {
                 ArrayList< Integer > pre = mapNum.get( i );
                 pre.add( current.get( i ) );
                 mapNum.put( i, pre );
+                stepHistory.put(i, pre);
             } catch ( Exception e ) {
                 ArrayList< Integer > cur = new ArrayList<>();
                 cur.add( current.get( i ) );
                 mapNum.put( i, cur );
+                stepHistory.put( i, cur);
             }
         }
+    }
+
+
+
+    public void updateText( String message ){
+        augment.setText( message );
     }
 
 
@@ -150,52 +249,117 @@ public class MainActivity extends Activity {
     private void drawHeatMap() {
         CalculateFoot calc = new CalculateFoot( mapNum );
         double[] map = calc.getHeatMap();
-        drawNewMap( map );
+        double time = calc.getTimeOverMS();
+
+            switch (checkForMAI(map)) {
+                case -1:
+                    updateText("You need to see a doctor!");
+                    break;
+                case RECTUS:
+                    updateText("Keep up the GOOD WORK");
+                    break;
+                case PLANUS:
+                    updateText("We're noticing a flatfooted walk. Make sure you lift off more as you walk," +
+                            " and put more pressure on the ball and heel of your foot!");
+                    break;
+                case CAVUS:
+                    updateText("We're noticing a high-arched walk. You're  putting too much pressure" +
+                            "on the ball and heel of your foot. Reduce the pressure there! ");
+                    break;
+            }
+
+
+        drawNewMap( map, time, calc );
     }
 
 
 
     @AnyThread
-    private void drawNewMap( double[] heatMap ) {
+    private void drawNewMap( double[] heatMap, double time, CalculateFoot calc ) {
         map.clearData();
         mapNum.clear();
-        count++;
+        double[] newMap = updateHistory( heatMap, time, calc );
+
+        double max = maxOfDouble( newMap );
+        map.setMaximum( max );
 
         for( int i = 0; i < 7; i++ ) {
-            map.addData( new HeatMap.DataPoint( X_LOC[i] * FACTOR, Y_LOC[i] * FACTOR, heatMap[i] ) );
+            map.addData( new HeatMap.DataPoint( X_LOC[i] * FACTOR, Y_LOC[i] * FACTOR, newMap[i] ) );
         }
 
         Log.d( "Data Sending: ", "Updating" );
     }
 
 
+    private void setTextOfTime( double time ) {
+        this.time.setText( "Total Time recorded: " + Double.toString( round( time, 2 ) ) + " seconds" );
+    }
 
-    private void updateHistory( ArrayList< Double > current, float time ) {
+
+    private static double round( double value, int places ) {
+        if ( places < 0 ) throw new IllegalArgumentException();
+
+        BigDecimal bd = new BigDecimal( Double.toString( value ) );
+        bd = bd.setScale( places, RoundingMode.HALF_UP );
+        return bd.doubleValue();
+    }
+
+
+
+    private int checkForMAI( double[] current ) {
+        double sectionA = current[0] + current[1] + current[2];
+        double sectionB = current[3] + current[4] + current[5];
+        double sectionC = current[6];
+
+        double mai = sectionB / ( sectionA + sectionB + sectionC );
+
+        if( 0 < mai && 0.3 > mai ) {
+            return CAVUS;
+        }
+        else if( 0.31 < mai && 0.463 > mai ) {
+            return RECTUS;
+        }
+        else if( 0.564 < mai && 0.913 > mai ) {
+            return PLANUS;
+        }
+        else { return -1; }
+    }
+
+
+
+    private double[] updateHistory( double[] current, double time, CalculateFoot calc ) {
         Context context = this;
         SharedPreferences sharedPref = context.getSharedPreferences( getString( R.string.preference_file_key ), Context.MODE_PRIVATE );
 
         float savedTime = sharedPref.getFloat( "time", 0.0f );
         String savedString = sharedPref.getString("points", "");
 
-        savedTime += time;
-
-        StringTokenizer st = new StringTokenizer(savedString, ",");
+        String[] history = savedString.split( ",", 7 );
         double[] savedList = new double[7];
-        for (int i = 0; i < 7; i++) {
-            savedList[i] = Double.parseDouble( st.nextToken() ) + current.get( i );
+        try {
+            for (int i = 0; i < 7; i++) {
+                savedList[i] = Double.parseDouble(history[i]) + current[i];
+            }
+        } catch ( Exception e ) {
+            savedList = current;
         }
 
         SharedPreferences.Editor editor = sharedPref.edit();
 
         StringBuilder str = new StringBuilder();
-        for ( double stored : current ) {
-            str.append( stored ).append(",");
+        for( int i = 0; i < 7; i++ ) {
+            if( 6 == i ) { str.append( savedList[i] ); }
+            else { str.append( savedList[i] ).append( "," ); }
         }
+        savedTime += time;
 
         editor.putString( "points", str.toString() );
         editor.putFloat( "time", savedTime );
 
         editor.apply();
+        setTextOfTime( savedTime );
+
+        return calc.calculateHeatMap( savedList, savedTime );
     }
 
 
@@ -205,6 +369,8 @@ public class MainActivity extends Activity {
         return  device.createRfcommSocketToServiceRecord(BTMODULEUUID);
         //creates secure outgoing connecetion with BT device using UUID
     }
+
+
 
     @Override
     public void onResume() {
@@ -247,6 +413,8 @@ public class MainActivity extends Activity {
         mConnectedThread.write("x");
     }
 
+
+
     @Override
     public void onPause()
     {
@@ -258,6 +426,8 @@ public class MainActivity extends Activity {
             //TODO: Don't leave Bluetooth sockets open when leaving activity
         }
     }
+
+
 
     private void checkBTState() {
 
@@ -273,6 +443,7 @@ public class MainActivity extends Activity {
     }
 
 
+
     private static int doGradient(double value, double min, double max, int min_color, int max_color) {
         if (value >= max) {
             return max_color;
@@ -282,9 +453,9 @@ public class MainActivity extends Activity {
         }
         float[] hsvmin = new float[3];
         float[] hsvmax = new float[3];
-        float frac = (float)((value - min) / (max - min));
-        Color.RGBToHSV(Color.red(min_color), Color.green(min_color), Color.blue(min_color), hsvmin);
-        Color.RGBToHSV(Color.red(max_color), Color.green(max_color), Color.blue(max_color), hsvmax);
+        float frac = (float)( ( value - min ) / ( max - min ) );
+        Color.RGBToHSV(Color.red( min_color ), Color.green( min_color ), Color.blue( min_color ), hsvmin);
+        Color.RGBToHSV(Color.red( max_color ), Color.green( max_color ), Color.blue( max_color ), hsvmax);
         float[] retval = new float[3];
         for (int i = 0; i < 3; i++) {
             retval[i] = interpolate(hsvmin[i], hsvmax[i], frac);
@@ -292,9 +463,13 @@ public class MainActivity extends Activity {
         return Color.HSVToColor(retval);
     }
 
+
+
     private static float interpolate(float a, float b, float proportion) {
-        return (a + ((b - a) * proportion));
+        return ( a + ( ( b - a ) * proportion ) );
     }
+
+
 
     private class ConnectedThread extends Thread {
         private final InputStream mmInStream;
@@ -313,6 +488,8 @@ public class MainActivity extends Activity {
             mmOutStream = tmpOut;
         }
 
+
+
         public void run() {
             byte[] buffer = new byte[256];
             int bytes;
@@ -327,6 +504,8 @@ public class MainActivity extends Activity {
                 }
             }
         }
+
+
 
         public void write( String input ) {
             byte[] msgBuffer = input.getBytes();
