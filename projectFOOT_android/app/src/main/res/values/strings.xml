@@ -8,4 +8,5 @@
     <string name="empty_data">Total Time recorded: 0 seconds</string>
     <string name="empty_augment">There is no Augment necessary</string>
     <string name="Open_Graph">Open Graph</string>
+    <string name="calibrate">calibration</string>
 </resources>

@@ -46,6 +46,8 @@ public class GraphActivity extends Activity {
         graph.getGridLabelRenderer().setHorizontalAxisTitle("Sensors");
         graph.getGridLabelRenderer().setVerticalAxisTitle("Force");
         graph.getGridLabelRenderer().setGridColor(Color.BLACK);
+        graph.setBackgroundColor(Color.LTGRAY);
+        graph.setTitle("Sensor Forces");
 
 
         double[] lowForceValues = new double[7];
@@ -129,7 +131,7 @@ public class GraphActivity extends Activity {
 
         //Legend for graph
         graph.getLegendRenderer().setVisible(true);
-        graph.getLegendRenderer().setAlign(LegendRenderer.LegendAlign.MIDDLE);
+        graph.getLegendRenderer().setAlign(LegendRenderer.LegendAlign.TOP);
         graph.getGridLabelRenderer().setNumHorizontalLabels(7);
 
     }
